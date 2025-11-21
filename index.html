@@ -1,40 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <link rel="stylesheet" href="style.css" />
     <meta charset="UTF-8" />
     <meta name="'viewport" content="'width=device-width, initial-scale=1.0" />
     <meta name="keywords" , content="music, emotion" />
     <meta
       name="description"
-      content="a webpage that generates music based on your mood!"
+      content="a webpage that generates music based on your mood."
     />
     <title>Emotion and Music</title>
     <style>
-      img {
-        width: 100px;
-        border-radius: 10px;
-        /* border-radius makes the square image round.
-                If the radius is more than 0.5 of the width, 
-                then the image would appear round*/
-        float: left;
-        margin-right: 10px;
-      }
-      p.welcome {
-        /* if only use.welcome, then the rules enclosed by it 
-                applies to everything for the class "welcome"*/
-
-        font-weight: bold;
+      .i {
+        font-style: italic;
       }
     </style>
   </head>
   <body>
     <h1>Zian's Music Generator</h1>
-    <img src="images/sweating_yellow_bean.png" ; alt="an image of 流汗黄豆" />
-    <!--"alt" is alternative description-->
-    <p class="welcome">Hi, welcome to my webpage!</p>
+    <h2>Background</h2>
     <p>
-      This is the normal text, while this <em>word</em> is emphacized! (not
-      italicized, but <em>empacized.</em>)
+      This program is inspired by video game
+      <a
+        href="https://youtu.be/5ngM8W6Gx4Q?si=jxz_KjI41M9vA8a1&t=427"
+        target="_blank"
+        ><span class="i">No Man's Sky</span>'s</a
+      >
+      <!--target='_blank' make sure the user opens the link in a new tab.-->
+      procedurally generated music. <span class="i">No Man's Sky</span> is a
+      space exploring game that has 18 quintillion procedurally generated
+      plannets, each having its own unique minerals, flora, terrain, etc. Its
+      music also reflects this ______
     </p>
+    <h2>Music Generator</h2>
+    <div id="x_container">
+      <lable>X Coordinate: </lable>
+      <input id="x_input" />
+    </div>
+    <div id="y_container">
+      <lable>Y Coordinate: </lable> <input id="y_input" />
+    </div>
+    <br />
+    <div id="submit_container">
+      <button id="coords_submit" class="buttons">submit!</button>
+      <p id="current_coords_out"></p>
+    </div>
+    <script src="index.js"></script>
   </body>
 </html>
