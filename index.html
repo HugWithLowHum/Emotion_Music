@@ -1,3 +1,7 @@
+<!--
+Naming Convention: 
+  Class: use-hyphen
+  id: useCamelCase-->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -17,7 +21,7 @@
     </style>
   </head>
   <body>
-    <h1>Zian's Music Generator</h1>
+    <h1 class="text-center">Zian's Music Generator</h1>
     <h2>Background</h2>
     <p>
       This program is inspired by video game
@@ -27,23 +31,51 @@
         ><span class="i">No Man's Sky</span>'s</a
       >
       <!--target='_blank' make sure the user opens the link in a new tab.-->
-      procedurally generated music. <span class="i">No Man's Sky</span> is a
-      space exploring game that has 18 quintillion procedurally generated
-      plannets, each having its own unique minerals, flora, terrain, etc. Its
-      music also reflects this ______
+      procedurally generated music.
     </p>
+    <p>
+      <span class="i">No Man's Sky</span> is a space exploring game that has 18
+      quintillion procedurally generated planets, each has its unique minerals,
+      flora, terrain, etc. The developers wanted to create a game that leaves
+      players infinite worlds to explore. This idea was also reflected by the
+      game's background music, created by the music group
+      <span class="i">65daysofstatic</span>. You will never hear the exact same
+      piece of music twice in the game. Instead, the music you hear will always
+      be modifications of several motifs. The music changes according to the
+      player's environment, behavior, and status. For instance, the music on a
+      freezing planet with monsters that hunt the player might share similar
+      melodic idea with the music on a peaceful earth-like planet, but the
+      former will sound more intense and unsettling.
+    </p>
+    <p>
+      <!--REFERENCE-->
+      I wanted to take this idea of "music generation based on user experience"
+      and create a personalized music generation program. This program generates
+      music that reflects the user's emotion. User may input their emotional
+      state by selecting a point on the
+      <a
+        href="https://psu.pb.unizin.org/psych425/chapter/circumplex-models/"
+        target="_blank"
+        ><span class="i">Circumplex of Emotion</span></a
+      >
+      by Russel (1980).
+    </p>
+
     <h2>Music Generator</h2>
-    <div id="x_container">
-      <lable>X Coordinate: </lable>
-      <input id="x_input" />
+    <div class="center-div">
+      <div id="coordsSystem">
+        <img
+          id="circumplexImg"
+          src="images/circumplex.png"
+          class="middle-img"
+          alt="image of the circumplex of emotion"
+        />
+        <div id="dot"></div>
+      </div>
     </div>
-    <div id="y_container">
-      <lable>Y Coordinate: </lable> <input id="y_input" />
-    </div>
-    <br />
-    <div id="submit_container">
-      <button id="coords_submit" class="buttons">submit!</button>
-      <p id="current_coords_out"></p>
+    <div id="submitContainer">
+      <p id="currentCoordsOut">Click any point on the image.</p>
+      <button id="coordsSubmit" class="buttons">submit!</button>
     </div>
     <script src="index.js"></script>
   </body>
