@@ -1,6 +1,6 @@
 body {
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 1.5em;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 1.3em;
   background: #ffffff;
   color: #000000;
 }
@@ -9,6 +9,8 @@ p {
   text-indent: 4ch;
   margin-right: 8%;
   margin-left: 7%;
+  margin-bottom: 5px;
+  line-height: 25px;
 }
 
 h2 {
@@ -22,7 +24,6 @@ h2 {
 .middle-img {
   height: 550px;
   width: 550px;
-
 }
 
 #coordsSystem {
@@ -58,8 +59,21 @@ button {
   border: 1px solid #ccc;
 }
 
-.buttons {
-  font-family: 'Times New Roman', Times, serif;
+.red-buttons {
+  font-family: "Times New Roman", Times, serif;
+  padding: 10px 20px;
+  font-size: 1.5em;
+  background-color: hsl(0, 67%, 37%);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.25s;
+}
+.red-buttons:hover {
+  background-color: #d25a5a;
+}
+
+.green-buttons {
+  font-family: "Times New Roman", Times, serif;
   padding: 10px 20px;
   font-size: 1.5em;
   background-color: hsl(129, 67%, 24%);
@@ -68,7 +82,7 @@ button {
   transition: background-color 0.25s;
 }
 
-.buttons:hover {
+.green-buttons:hover {
   background-color: #379a65;
 }
 
@@ -76,9 +90,9 @@ button {
   text-align: center;
 }
 
-#submitContainer {
+#playControlContainer {
   text-align: center;
-  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
 }
 
 @media (prefers-color-scheme: dark) {
