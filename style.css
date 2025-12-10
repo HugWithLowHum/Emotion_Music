@@ -71,7 +71,18 @@ button {
 .red-buttons:hover {
   background-color: #d25a5a;
 }
-
+.blue-buttons {
+  font-family: "Times New Roman", Times, serif;
+  padding: 10px 20px;
+  font-size: 1.5em;
+  background-color: hsl(226, 71%, 30%);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.25s;
+}
+.blue-buttons:hover {
+  background-color: #3e74d7;
+}
 .green-buttons {
   font-family: "Times New Roman", Times, serif;
   padding: 10px 20px;
