@@ -142,9 +142,9 @@ function init() {
   const arp_pan = new Tone.Panner(-0.15);
   const arp_vol = new Tone.Volume(0); // main arp gain stage
   const arpLFO = new Tone.LFO({
-    type: "sine",
+    type: "square",
     frequency: "0.8hz", // slow sweep
-    min: -20, // dB lower bound
+    min: -40, // dB lower bound
     max: 0, // dB upper bound
   }).start();
   arpLFO.connect(arp_vol.volume); // modulate arp volume
@@ -281,7 +281,7 @@ function init() {
 
   ////////////////////////////////// MAPPING /////////////////////////////////////////////
   function computeTargetFromEmotion(x, y) {
-    const bpm = 105 + y * 0.2;
+    const bpm = 105 + y * 0.5;
     let arpPattern = currentState.arpPattern;
     let chordPattern = currentState.chordPattern;
     //chords brightness
@@ -312,7 +312,7 @@ function init() {
     //use chords when y>30
     const useChords = y > 30;
     //When using chords, apply (16n)
-    let arpLfoFreq = useChords ? "32n" : 0;
+    let arpLfoFreq = useChords ? "64n" : 0;
     let arpVol = useChords ? -15 : 0;
     //percussion randomness
     let hatRandomness = currentState.hatRandomness ?? 0.4;
@@ -480,10 +480,10 @@ function init() {
 
   function startSequences(startTime = 0) {
     arp_seq.start(startTime);
-    mel_seq.start(startTime);
-    hat_seq.start(startTime);
-    kick_seq.start(startTime);
-    snare_seq.start(startTime);
+    mel_seq.start(0);
+    hat_seq.start(0);
+    kick_seq.start(0);
+    snare_seq.start(0);
   }
   ///////////////////////// PLAYBUTTON FUNCTION///////////////////////////////////////////////////
   playButton.addEventListener("click", async () => {
