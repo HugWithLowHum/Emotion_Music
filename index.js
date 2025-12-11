@@ -143,8 +143,8 @@ function init() {
   const arp_pan = new Tone.Panner(-0.15);
   const arp_vol = new Tone.Volume(0); // main arp gain stage
   const arpLFO = new Tone.LFO({
-    type: "square",
-    frequency: "0.8hz", // slow sweep
+    type: "sawtooth",
+    frequency: 0, // slow sweep
     min: -40, // dB lower bound
     max: 0, // dB upper bound
   }).start();
@@ -313,7 +313,7 @@ function init() {
     //use chords when y>30
     const useChords = y > 30;
     //When using chords, apply (16n)
-    let arpLfoFreq = useChords ? "64n" : 0;
+    let arpLfoFreq = useChords ? "32n" : 0;
     let arpVol = useChords ? -15 : 0;
     //percussion randomness
     let hatRandomness = currentState.hatRandomness ?? 0.4;
