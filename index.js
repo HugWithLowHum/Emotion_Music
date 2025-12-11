@@ -5,6 +5,7 @@ function init() {
   const playButton = document.getElementById("playButton");
   const stopButton = document.getElementById("stopButton");
   const submitButton = document.getElementById("submitButton");
+  console.log("Tone version:", Tone.version);
 
   if (
     !coordsSystem ||
