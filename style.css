@@ -1,8 +1,16 @@
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+  --button-bg: #f0f0f0;
+  --button-text: #000000;
+  --button-border: #ccc;
+}
+
 body {
   font-family: "Times New Roman", Times, serif;
   font-size: 1.3em;
-  background: #ffffff;
-  color: #000000;
+  background: var(--bg);
+  color: var(--text);
 }
 
 p {
@@ -54,9 +62,9 @@ h2 {
 }
 
 button {
-  background: #f0f0f0;
-  color: #000000;
-  border: 1px solid #ccc;
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--button-border);
 }
 
 .red-buttons {
@@ -83,6 +91,11 @@ button {
 .blue-buttons:hover {
   background-color: #3e74d7;
 }
+.blue-buttons:disabled {
+  background-color: #808080;
+  color: #f0f0f0;
+  cursor: not-allowed;
+}
 .green-buttons {
   font-family: "Times New Roman", Times, serif;
   padding: 10px 20px;
@@ -97,6 +110,12 @@ button {
   background-color: #379a65;
 }
 
+.green-buttons:disabled {
+  background-color: #808080;
+  color: #f0f0f0;
+  cursor: not-allowed;
+}
+
 .text-center {
   text-align: center;
 }
@@ -106,21 +125,41 @@ button {
   font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
 }
 
+.theme-toggle {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 8px 12px;
+  font-size: 0.9em;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 1px solid var(--button-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 @media (prefers-color-scheme: dark) {
-  body {
-    background: #191919;
-    color: #e5e5e5;
+  :root:not([data-theme]) {
+    --bg: #191919;
+    --text: #e5e5e5;
+    --button-bg: #333;
+    --button-text: #fff;
+    --button-border: #555;
   }
+}
 
-  button {
-    background: #333;
-    color: #fff;
-    border: 1px solid #555;
-  }
+body[data-theme="dark"] {
+  --bg: #191919;
+  --text: #e5e5e5;
+  --button-bg: #333;
+  --button-text: #fff;
+  --button-border: #555;
+}
 
-  input {
-    background: #484646;
-    color: #fff;
-    border: 1px solid #555;
-  }
+body[data-theme="light"] {
+  --bg: #ffffff;
+  --text: #000000;
+  --button-bg: #f0f0f0;
+  --button-text: #000000;
+  --button-border: #ccc;
 }

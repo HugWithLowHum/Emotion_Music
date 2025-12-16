@@ -5,6 +5,7 @@ function init() {
   const playButton = document.getElementById("playButton");
   const stopButton = document.getElementById("stopButton");
   const submitButton = document.getElementById("submitButton");
+  const themeToggle = document.getElementById("themeToggle");
   console.log("Tone version:", Tone.version);
 
   if (
@@ -18,12 +19,18 @@ function init() {
     console.error("Required UI elements missing; cannot start audio.");
     return;
   }
+  if (!themeToggle) {
+    console.warn("Theme toggle button missing; theme switching disabled.");
+  }
 
   submitButton.style.display = "none";
   let tempX;
   let tempY;
   let emoX = 0;
   let emoY = 0;
+  let submitRevealEventId = null;
+  let submitRevealMeasureCount = 0;
+  let submitCooldownEventId = null;
 
   coordsSystem.addEventListener("click", function (e) {
     const rect = coordsSystem.getBoundingClientRect();
@@ -46,9 +53,47 @@ function init() {
     emoY = tempY;
   });
 
+  function applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    if (themeToggle) {
+      themeToggle.textContent = theme === "dark" ? "Light Mode" : "Dark Mode";
+    }
+    try {
+      localStorage.setItem("theme", theme);
+    } catch (e) {
+      console.warn("Could not persist theme preference:", e);
+    }
+  }
+
+  if (themeToggle) {
+    const savedTheme = (() => {
+      try {
+        return localStorage.getItem("theme");
+      } catch (e) {
+        return null;
+      }
+    })();
+    const prefersDark =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    applyTheme(savedTheme || (prefersDark ? "dark" : "light"));
+
+    themeToggle.addEventListener("click", () => {
+      const nextTheme =
+        document.body.dataset.theme === "dark" ? "light" : "dark";
+      applyTheme(nextTheme);
+    });
+  }
+
   ////////////////////////////////////////////////////////////////////
   //          TONE.JS SECTION           //
   Tone.Transport.bpm.value = 105;
+  const masterVolume = new Tone.Volume(0).toDestination();
+  const globalFilter = new Tone.Filter({
+    type: "lowpass",
+    frequency: 20000,
+    Q: 1,
+  }).connect(masterVolume);
   ////////////////////// ARPEGGIO SETUP////////////////////////////////////////
   const Cmaj7_arp = ["C3", "E3", "G3", "B3", "C4", "B3", "G3", "C3"];
   const Dm7_arp = ["D3", "F3", "A3", "B3", "C4", "D4", "C4", "F3"];
@@ -138,7 +183,8 @@ function init() {
   const reverb_arp = new Tone.Reverb({
     decay: "4",
     wet: 0.5,
-  }).toDestination();
+  });
+  reverb_arp.connect(globalFilter);
   // Tone.Panner pan range is -1..1; 15/-15 would clamp and can mute, so use +/-0.15 for a 15% offset.
   const arp_pan = new Tone.Panner(-0.15);
   const arp_vol = new Tone.Volume(0); // main arp gain stage
@@ -152,19 +198,7 @@ function init() {
   const arp_synth = new Tone.PolySynth(Tone.AMSynth);
   arp_synth.chain(arp_pan, arp_vol, reverb_arp);
   ////////////////////// MELODY SETUP///////////////////////////////////////////////
-  const mel_lengths_long = [
-    "1n",
-    "1n",
-    "1n",
-    "2n",
-    "2n",
-    "1n",
-    "1n",
-    "1n",
-    "2n",
-    "2n",
-    "4n",
-  ];
+  const mel_lengths_long = ["1n", "1n", "1n", "2n", "1n", "1n", "1n", "2n"];
   const mel_lengths_short = [
     "1n",
     "2n",
@@ -207,12 +241,13 @@ function init() {
     "Bb5",
   ];
 
-  const mel_vol = new Tone.Volume(-20).toDestination(); // "vol" for volume.
+  const mel_vol = new Tone.Volume(-20); // "vol" for volume.
   const mel_pan = new Tone.Panner(0.15);
   const reverb_mel = new Tone.Reverb({
     decay: "1",
     wet: 0.1,
-  }).toDestination();
+  });
+  reverb_mel.connect(globalFilter);
   const mel_synth = new Tone.PolySynth(Tone.DuoSynth, {
     voice0: {
       filterEnvelope: {
@@ -231,7 +266,7 @@ function init() {
   });
   mel_synth.chain(mel_pan, mel_vol, reverb_mel); // "mel" for melody.
   ////////////////////////// HI-HAT SETUP////////////////////////////////////////////////////
-  const hat_vol = new Tone.Volume(-20).toDestination(); // "hat" for hi-hat
+  const hat_vol = new Tone.Volume(-20).connect(globalFilter); // "hat" for hi-hat
   const hat_synth = new Tone.MetalSynth({
     envelope: { attack: 0.001, decay: 0.15, release: 0.05 },
     harmonicity: 5.1,
@@ -240,7 +275,7 @@ function init() {
     octaves: 1.5,
   }).connect(hat_vol);
   //////////////////////// KICK SETUP///////////////////////////
-  const kick_vol = new Tone.Volume(-6).toDestination();
+  const kick_vol = new Tone.Volume(-6).connect(globalFilter);
   const kick_synth = new Tone.MembraneSynth({
     pitchDecay: 0.01,
     octaves: 6,
@@ -248,7 +283,7 @@ function init() {
     envelope: { attack: 0.001, decay: 0.9, sustain: 0.01, release: 0.6 },
   }).connect(kick_vol);
   //////////////////////// SNARE SETUP//////////////////////////////////////////////////////
-  const snare_vol = new Tone.Volume(-20).toDestination();
+  const snare_vol = new Tone.Volume(-20).connect(globalFilter);
   const snare_synth = new Tone.NoiseSynth({
     noise: { type: "white" },
     envelope: { attack: 0.001, decay: 0.25, sustain: 0 },
@@ -275,10 +310,42 @@ function init() {
     arpVol: 0,
     snareRandomness: 0.4,
     hatRandomness: 0.4,
+    filterCutoff: 20000,
+    masterVol: 0,
   };
   let targetState = { ...currentState };
   let pendingChanges = {};
   arp_vol.volume.value = currentState.arpVol;
+  globalFilter.frequency.value = currentState.filterCutoff;
+  masterVolume.volume.value = currentState.masterVol;
+
+  function clearSubmitRevealTimer() {
+    if (submitRevealEventId !== null) {
+      Tone.Transport.clear(submitRevealEventId);
+      submitRevealEventId = null;
+    }
+    submitRevealMeasureCount = 0;
+  }
+
+  function clearSubmitCooldownTimer() {
+    if (submitCooldownEventId !== null) {
+      Tone.Transport.clear(submitCooldownEventId);
+      submitCooldownEventId = null;
+    }
+  }
+
+  function scheduleSubmitReveal() {
+    clearSubmitRevealTimer();
+    submitRevealEventId = Tone.Transport.scheduleRepeat(() => {
+      submitRevealMeasureCount += 1;
+      if (submitRevealMeasureCount >= 9) {
+        playButton.style.display = "none";
+        submitButton.style.display = "inline-block";
+        submitButton.disabled = false;
+        clearSubmitRevealTimer();
+      }
+    }, "1m");
+  }
 
   ////////////////////////////////// MAPPING /////////////////////////////////////////////
   function computeTargetFromEmotion(x, y) {
@@ -313,7 +380,7 @@ function init() {
     //use chords when y>30
     const useChords = y > 30;
     //When using chords, apply (16n)
-    let arpLfoFreq = useChords ? "32n" : 0;
+    let arpLfoFreq = useChords ? "16n" : 0;
     let arpVol = useChords ? -15 : 0;
     //percussion randomness
     let hatRandomness = currentState.hatRandomness ?? 0.4;
@@ -323,6 +390,21 @@ function init() {
       const scaled = Math.max(1 - dist / 100, 0);
       hatRandomness = scaled;
       snareRandomness = scaled;
+    }
+    // overall low-pass: tighten when in (+x, -y) quadrant and farther from origin
+    const maxCutoff = 20000;
+    const minCutoff = 300;
+    let filterCutoff = maxCutoff;
+    if (y < 0) {
+      const dist = Math.sqrt(x * x + y * y);
+      const t = Math.min(dist / 40, 1);
+      filterCutoff = maxCutoff - t * (maxCutoff - minCutoff);
+    }
+    // master volume: when y < 0, reduce volume up to -20 dB the farther it moves downward
+    let masterVol = 0;
+    if (y < 0) {
+      const depth = Math.min(Math.abs(y) / 100, 1);
+      masterVol = -20 * depth;
     }
 
     return {
@@ -336,6 +418,8 @@ function init() {
       arpVol,
       hatRandomness,
       snareRandomness,
+      filterCutoff,
+      masterVol,
     };
   }
   ////////////////////////////////// CONDUCTOR ///////////////////////////////////
@@ -346,8 +430,15 @@ function init() {
       const useChords_old = currentState.useChords;
       currentState = { ...currentState, ...pendingChanges };
       pendingChanges = {};
+      arpLFO.frequency.value = currentState.arpLfoFreq;
       if (typeof currentState.arpVol === "number") {
         arp_vol.volume.value = currentState.arpVol;
+      }
+      if (typeof currentState.filterCutoff === "number") {
+        globalFilter.frequency.value = currentState.filterCutoff;
+      }
+      if (typeof currentState.masterVol === "number") {
+        masterVolume.volume.value = currentState.masterVol;
       }
       if (
         currentState.useChords !== useChords_old ||
@@ -488,13 +579,19 @@ function init() {
   }
   ///////////////////////// PLAYBUTTON FUNCTION///////////////////////////////////////////////////
   playButton.addEventListener("click", async () => {
-    playButton.style.display = "none";
-    submitButton.style.display = "inline-block";
+    if (playButton.disabled) {
+      return;
+    }
+    playButton.disabled = true;
+    submitButton.style.display = "none";
+    clearSubmitRevealTimer();
+    clearSubmitCooldownTimer();
     await Tone.start();
     disposeSequences();
     buildSequences();
     startSequences();
     Tone.Transport.start();
+    scheduleSubmitReveal();
   });
   ////////////////////STOPBUTTON FUNCTION////////////////////////////////////
   stopButton.addEventListener("click", () => {
@@ -504,14 +601,27 @@ function init() {
     if (kick_seq) kick_seq.stop();
     if (snare_seq) snare_seq.stop();
     disposeSequences();
+    clearSubmitRevealTimer();
+    clearSubmitCooldownTimer();
     Tone.Transport.stop();
     Tone.Transport.position = 0;
+    playButton.disabled = false;
     playButton.style.display = "inline-block";
+    submitButton.disabled = false;
     submitButton.style.display = "none";
   });
 
   /////////////////////SUBMITBUTTON FUNCTION////////////////////////////////
   submitButton.addEventListener("click", () => {
+    if (submitButton.disabled) {
+      return;
+    }
+    submitButton.disabled = true;
+    clearSubmitCooldownTimer();
+    submitCooldownEventId = Tone.Transport.scheduleOnce(() => {
+      submitButton.disabled = false;
+      submitCooldownEventId = null;
+    }, "+2m"); // Submit button will be clickable after 2 measures.
     targetState = computeTargetFromEmotion(tempX, tempY);
     if (Number.isFinite(targetState.bpm)) {
       Tone.Transport.bpm.rampTo(targetState.bpm, 2.5);
