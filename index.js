@@ -338,7 +338,7 @@ function init() {
     clearSubmitRevealTimer();
     submitRevealEventId = Tone.Transport.scheduleRepeat(() => {
       submitRevealMeasureCount += 1;
-      if (submitRevealMeasureCount >= 9) {
+      if (submitRevealMeasureCount >= 10) {
         playButton.style.display = "none";
         submitButton.style.display = "inline-block";
         submitButton.disabled = false;
@@ -430,6 +430,10 @@ function init() {
       const useChords_old = currentState.useChords;
       currentState = { ...currentState, ...pendingChanges };
       pendingChanges = {};
+      if (Number.isFinite(currentState.bpm)) {
+        Tone.Transport.bpm.cancelScheduledValues(time);
+        Tone.Transport.bpm.setValueAtTime(currentState.bpm, time);
+      }
       arpLFO.frequency.value = currentState.arpLfoFreq;
       if (typeof currentState.arpVol === "number") {
         arp_vol.volume.value = currentState.arpVol;
@@ -440,21 +444,15 @@ function init() {
       if (typeof currentState.masterVol === "number") {
         masterVolume.volume.value = currentState.masterVol;
       }
-      if (
+      const needsRebuild =
         currentState.useChords !== useChords_old ||
-        (currentState.useChords && currentState.chordPattern !== chord_old)
-      ) {
+        currentState.arpPattern !== arp_old ||
+        currentState.chordPattern !== chord_old;
+      if (needsRebuild) {
         disposeSequences();
         buildSequences();
         startSequences(time);
         return;
-      }
-      if (
-        arp_seq &&
-        !currentState.useChords &&
-        currentState.arpPattern !== arp_old
-      ) {
-        arp_seq.events = currentState.arpPattern;
       }
     }
   }, "1m");
@@ -571,11 +569,13 @@ function init() {
   }
 
   function startSequences(startTime = 0) {
+    const transportStarted = Tone.Transport.state === "started";
+    const grooveStart = transportStarted ? startTime : "8m";
     arp_seq.start(startTime);
-    mel_seq.start(0);
-    hat_seq.start(0);
-    kick_seq.start(0);
-    snare_seq.start(0);
+    mel_seq.start(grooveStart);
+    hat_seq.start(grooveStart);
+    kick_seq.start(grooveStart);
+    snare_seq.start(grooveStart);
   }
   ///////////////////////// PLAYBUTTON FUNCTION///////////////////////////////////////////////////
   playButton.addEventListener("click", async () => {
@@ -623,9 +623,6 @@ function init() {
       submitCooldownEventId = null;
     }, "+2m"); // Submit button will be clickable after 2 measures.
     targetState = computeTargetFromEmotion(tempX, tempY);
-    if (Number.isFinite(targetState.bpm)) {
-      Tone.Transport.bpm.rampTo(targetState.bpm, 2.5);
-    }
     pendingChanges = { ...targetState };
   });
 }
