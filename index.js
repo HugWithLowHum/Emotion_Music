@@ -448,10 +448,13 @@ function init() {
         currentState.useChords !== useChords_old ||
         currentState.arpPattern !== arp_old ||
         currentState.chordPattern !== chord_old;
-      if (needsRebuild) {
+      const sequencesMissing =
+        !arp_seq || !mel_seq || !hat_seq || !kick_seq || !snare_seq;
+      if (needsRebuild || sequencesMissing) {
+        const startAt = time + Tone.Time("1i"); // give a tiny lookahead so start isn't in the past
         disposeSequences();
         buildSequences();
-        startSequences(time);
+        startSequences(startAt);
         return;
       }
     }
@@ -570,8 +573,13 @@ function init() {
 
   function startSequences(startTime = 0) {
     const transportStarted = Tone.Transport.state === "started";
-    const grooveStart = transportStarted ? startTime : "8m";
-    arp_seq.start(startTime);
+    const now = Tone.Transport.seconds;
+    const safeStart =
+      typeof startTime === "number" && startTime < now
+        ? now + Tone.Time("1i")
+        : startTime;
+    const grooveStart = transportStarted ? safeStart : "8m";
+    arp_seq.start(safeStart);
     mel_seq.start(grooveStart);
     hat_seq.start(grooveStart);
     kick_seq.start(grooveStart);
